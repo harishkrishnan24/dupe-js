@@ -1,0 +1,15 @@
+{
+  "name": "dupe-js-project",
+  "version": "1.0.0",
+  "description": "Frontend framework to understand how it works",
+  "private": true,
+  "workspaces": [
+    "packages/runtime"
+  ],
+  "scripts": {
+    "serve:examples": "npx http-server -0 ./examples/"
+  },
+  "keywords": [],
+  "author": "Harish Krishnan",
+  "license": "ISC"
+}
