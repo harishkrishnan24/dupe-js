@@ -22,7 +22,7 @@ function mapTextNodes(children) {
 }
 
 export function hString(str) {
-  return { type: DOM_TYPES.TEXT, text: str };
+  return { type: DOM_TYPES.TEXT, value: str };
 }
 
 export function hFragment(vNodes) {
