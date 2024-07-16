@@ -7,7 +7,7 @@
     "packages/runtime"
   ],
   "scripts": {
-    "serve:examples": "npx http-server -0 ./examples/"
+    "serve:examples": "npx http-server -o ./examples/"
   },
   "keywords": [],
   "author": "Harish Krishnan",
