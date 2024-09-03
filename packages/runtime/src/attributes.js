@@ -17,10 +17,10 @@ export function setAttributes(el, attrs) {
 }
 
 function setClass(el, className) {
-  el.clasName = "";
+  el.className = "";
 
   if (typeof className === "string") {
-    el.clasName = className;
+    el.className = className;
   }
 
   if (Array.isArray(className)) {
