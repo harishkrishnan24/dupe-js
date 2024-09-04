@@ -6,10 +6,10 @@ import {
 } from "./attributes";
 import { destroyDOM } from "./destroy-dom";
 import { addEventListener } from "./events";
-import { DOM_TYPES } from "./h";
+import { DOM_TYPES, extractChildren } from "./h";
 import { mountDOM } from "./mount-dom";
 import { areNodesEqual } from "./nodes-equal";
-import { arraysDiff } from "./utils/arrays";
+import { arraysDiff, arraysDiffSequence, ARRAY_DIFF_OP } from "./utils/arrays";
 import { objectsDiff } from "./utils/objects";
 import { isNotBlankOrEmptyString } from "./utils/strings";
 
@@ -35,6 +35,9 @@ export function patchDOM(oldVdom, newVdom, parentEl) {
       break;
     }
   }
+
+  patchChildren(oldVdom, newVdom);
+
   return newVdom;
 }
 
@@ -139,4 +142,41 @@ function patchEvents(el, oldListeners = {}, oldEvents = {}, newEvents = {}) {
   }
 
   return addedListeners;
+}
+
+function patchChildren(oldVdom, newVdom) {
+  const oldChildren = extractChildren(oldVdom);
+  const newChildren = extractChildren(newVdom);
+  const parentEl = oldVdom.el;
+
+  const diffSeq = arraysDiffSequence(oldChildren, newChildren, areNodesEqual);
+
+  for (const operation of diffSeq) {
+    const { originalIndex, index, item } = operation;
+
+    switch (operation.op) {
+      case ARRAY_DIFF_OP.ADD: {
+        mountDOM(item, parentEl, index);
+        break;
+      }
+      case ARRAY_DIFF_OP.REMOVE: {
+        destroyDOM(item);
+        break;
+      }
+      case ARRAY_DIFF_OP.MOVE: {
+        const oldChild = oldChildren[originalIndex];
+        const newChild = newChildren[index];
+        const el = oldChild.el;
+        const elAtTargetIndex = parentEl.childNodes[index];
+
+        parentEl.insertBefore(el, elAtTargetIndex);
+        patchDOM(oldChild, newChild, parentEl);
+        break;
+      }
+      case ARRAY_DIFF_OP.NOOP: {
+        patchDOM(oldChildren[originalIndex], newChildren[index], parentEl);
+        break;
+      }
+    }
+  }
 }
