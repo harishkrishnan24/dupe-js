@@ -2,7 +2,7 @@ import {
   createApp,
   h,
   hFragment,
-} from "https://unpkg.com/@harishkrishnan24/dupe-js@2.0.1";
+} from "https://unpkg.com/@harishkrishnan24/dupe-js@2.1.0";
 
 const state = {
   currentTodo: "",
