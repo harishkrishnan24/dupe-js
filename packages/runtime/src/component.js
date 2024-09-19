@@ -1,7 +1,8 @@
-import { mountDOM } from "./dom";
+import equal from "fast-deep-equal";
 import { destroyDOM } from "./destroy-dom";
-import { patchDOM } from "./patch-dom";
+import { mountDOM } from "./dom";
 import { DOM_TYPES, extractChildren } from "./h";
+import { patchDOM } from "./patch-dom";
 import { hasOwnProperty } from "./utils/objects";
 
 export function defineComponent({ render, state, ...methods }) {
@@ -9,10 +10,14 @@ export function defineComponent({ render, state, ...methods }) {
     #isMounted = false;
     #vdom = null;
     #hostEl = null;
+    #eventHandlers = null;
+    #parentComponent = null;
 
-    constructor(props = {}) {
+    constructor(props = {}, eventHandlers = {}, parentComponent = null) {
       this.props = props;
       this.state = state ? state(props) : {};
+      this.#eventHandlers = eventHandlers;
+      this.#parentComponent = parentComponent;
     }
 
     get elements() {
@@ -21,7 +26,13 @@ export function defineComponent({ render, state, ...methods }) {
       }
 
       if (this.#vdom.type === DOM_TYPES.FRAGMENT) {
-        return extractChildren(this.#vdom).map((child) => child.el);
+        return extractChildren(this.#vdom).flatMap((child) => {
+          if (child.type === DOM_TYPES.COMPONENT) {
+            return child.component.elements;
+          }
+
+          return [child.el];
+        });
       }
 
       return [this.#vdom.el];
@@ -40,6 +51,13 @@ export function defineComponent({ render, state, ...methods }) {
 
     updateState(state) {
       this.state = { ...this.state, ...state };
+      this.#patch();
+    }
+
+    updateProps(props) {
+      const newProps = { ...this.props, ...props };
+      if (equal(this.props, newProps)) return;
+      this.props = newProps;
       this.#patch();
     }
 

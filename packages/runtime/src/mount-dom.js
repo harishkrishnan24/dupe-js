@@ -19,6 +19,11 @@ export function mountDOM(vdom, parentEl, index, hostComponent = null) {
       break;
     }
 
+    case DOM_TYPES.COMPONENT: {
+      createComponentNode(vdom, parentEl, index, hostComponent);
+      break;
+    }
+
     default: {
       throw new Error(`Can't mount unknown vdom type: ${vdom.type} `);
     }
@@ -76,4 +81,14 @@ function addProps(el, props, vdom, hostComponent) {
   const { on: events, ...attrs } = props;
   vdom.listeners = addEventListeners(events, el, hostComponent);
   setAttributes(el, attrs);
+}
+
+function createComponentNode(vdom, parentEl, index, hostComponent) {
+  const Component = vdom.tag;
+  const props = vdom.props;
+  const component = new Component(props);
+
+  component.mount(parentEl, index);
+  vdom.component = component;
+  vdom.el = component.firstElement;
 }

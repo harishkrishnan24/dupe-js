@@ -20,6 +20,8 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.7.0",
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
     "eslint": "^9.7.0",
     "globals": "^15.8.0",
     "jsdom": "^24.1.0",
@@ -27,5 +29,8 @@
     "rollup-plugin-cleanup": "^3.2.1",
     "rollup-plugin-filesize": "^10.0.0",
     "vitest": "^2.0.2"
+  },
+  "dependencies": {
+    "fast-deep-equal": "^3.1.3"
   }
 }
