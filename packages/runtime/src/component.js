@@ -4,6 +4,7 @@ import { mountDOM } from "./dom";
 import { DOM_TYPES, extractChildren } from "./h";
 import { patchDOM } from "./patch-dom";
 import { hasOwnProperty } from "./utils/objects";
+import { Dispatcher } from "./dispatcher";
 
 export function defineComponent({ render, state, ...methods }) {
   class Component {
@@ -12,6 +13,8 @@ export function defineComponent({ render, state, ...methods }) {
     #hostEl = null;
     #eventHandlers = null;
     #parentComponent = null;
+    #dispatcher = new Dispatcher();
+    #subscriptions = [];
 
     constructor(props = {}, eventHandlers = {}, parentComponent = null) {
       this.props = props;
@@ -71,6 +74,7 @@ export function defineComponent({ render, state, ...methods }) {
       }
       this.#vdom = this.render();
       mountDOM(this.#vdom, hostEl, index, this);
+      this.#wireEventHandlers();
       this.#hostEl = hostEl;
       this.#isMounted = true;
     }
@@ -80,9 +84,11 @@ export function defineComponent({ render, state, ...methods }) {
         throw new Error("Component is not mounted. Mount it first.");
       }
       destroyDOM(this.#vdom);
+      this.#subscriptions.forEach((unsubscribe) => unsubscribe());
       this.#vdom = null;
       this.#hostEl = null;
       this.#isMounted = false;
+      this.#subscriptions = [];
     }
 
     #patch() {
@@ -91,6 +97,26 @@ export function defineComponent({ render, state, ...methods }) {
       }
       const vdom = this.render();
       this.#vdom = patchDOM(this.#vdom, vdom, this.#hostEl, this);
+    }
+
+    #wireEventHandlers() {
+      this.#subscriptions = Object.entries(this.#eventHandlers).map(
+        ([eventName, handler]) => this.#wireEventHandler(eventName, handler)
+      );
+    }
+
+    #wireEventHandler(eventName, handler) {
+      return this.#dispatcher.subscribe(eventName, (payload) => {
+        if (this.#parentComponent) {
+          handler.call(this.#parentComponent, payload);
+        } else {
+          handler(payload);
+        }
+      });
+    }
+
+    emit(eventName, payload) {
+      this.#dispatcher.dispatch(eventName, payload);
     }
   }
 
